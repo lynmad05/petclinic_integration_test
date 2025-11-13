@@ -1,21 +1,21 @@
 package com.tecsup.petclinic.services;
 
-import com.tecsup.petclinic.entities.Type;
+import com.tecsup.petclinic.dtos.TypeDTO;
 import com.tecsup.petclinic.exceptions.TypeNotFoundException;
 
 import java.util.List;
 
 public interface TypeService {
 
-    Type findById(Integer id) throws TypeNotFoundException;
+    TypeDTO findById(Integer id) throws TypeNotFoundException;
 
-    List<Type> findByName(String name);
+    List<TypeDTO> findByName(String name);
 
-    Type create(Type type);
+    List<TypeDTO> findAll();
 
-    Type update(Type type);
+    TypeDTO create(TypeDTO dto);
+
+    TypeDTO update(TypeDTO dto);
 
     void delete(Integer id) throws TypeNotFoundException;
-
-    List<Type> findAll();
 }
