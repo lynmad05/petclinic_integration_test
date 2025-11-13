@@ -47,4 +47,4 @@ logging :
   # file : %d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%
 
 server :
-  port : 8080
+  port : 8081
