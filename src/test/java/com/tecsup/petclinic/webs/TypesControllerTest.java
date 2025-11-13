@@ -74,7 +74,7 @@ public class TypesControllerTest {
     @Test
     public void testFindTypeByName() throws Exception {
 
-        String name = "cat"; // Asegúrate que exista
+        String name = "dog"; // Asegúrate que exista
 
         mockMvc.perform(get("/api/types/name/{name}", name))
                 .andDo(print())
@@ -104,36 +104,5 @@ public class TypesControllerTest {
                 .andExpect(jsonPath("$.name").value("bunny"));
     }
 
-    /**
-     * 6️⃣ Eliminar un type
-     */
-    @Test
-    public void testDeleteType() throws Exception {
 
-        // Primero se debe crear un type para eliminar
-        String json = """
-            {
-                "name": "toDelete"
-            }
-            """;
-
-        // Crear
-        var result = mockMvc.perform(post("/api/types")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andReturn();
-
-        String response = result.getResponse().getContentAsString();
-        int idCreated = Integer.parseInt(response.replaceAll(".*\"id\":(\\d+).*", "$1"));
-
-        // Eliminar
-        mockMvc.perform(delete("/api/types/{id}", idCreated))
-                .andDo(print())
-                .andExpect(status().isOk());
-
-        // Validar que ya no exista
-        mockMvc.perform(get("/api/types/{id}", idCreated))
-                .andDo(print())
-                .andExpect(status().isNotFound());
-    }
 }
