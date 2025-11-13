@@ -1,153 +1,126 @@
 package com.tecsup.petclinic.services;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-
+import com.tecsup.petclinic.dtos.TypeDTO;
 import com.tecsup.petclinic.entities.Type;
 import com.tecsup.petclinic.exceptions.TypeNotFoundException;
+import com.tecsup.petclinic.mapper.TypeMapper;
+import com.tecsup.petclinic.repositories.TypeRepository;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
 import java.util.List;
+import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-import lombok.extern.slf4j.Slf4j;
-
-@SpringBootTest
-@Slf4j
 public class TypeServiceTest {
 
-    @Autowired
-    private TypeService typeService;
+    @Mock
+    private TypeRepository typeRepository;
 
-    /**
-     * Buscar tipo por ID
-     */
-    @Test
-    public void testFindTypeById() {
+    @Mock
+    private TypeMapper typeMapper;
 
-        Integer ID = 1;
-        String NAME_EXPECTED = "cat";
+    @InjectMocks
+    private TypeServiceImpl typeService;
 
-        Type type = null;
-
-        try {
-            type = this.typeService.findById(ID);
-        } catch (TypeNotFoundException e) {
-            fail(e.getMessage());
-        }
-
-        log.info("TYPE FOUND: " + type);
-
-        assertNotNull(type);
-        assertEquals(NAME_EXPECTED, type.getName());
+    public TypeServiceTest() {
+        MockitoAnnotations.openMocks(this);
     }
 
-    /**
-     * Buscar tipo por nombre
-     */
-    @Test
-    public void testFindTypeByName() {
-
-        String FIND_NAME = "dog";
-        int SIZE_EXPECTED = 1;
-
-        List<Type> types = this.typeService.findByName(FIND_NAME);
-
-        assertEquals(SIZE_EXPECTED, types.size());
-        assertEquals(FIND_NAME, types.get(0).getName());
-    }
 
     @Test
-    public void testFindAllTypes() {
+    void testFindById() throws Exception {
 
-        List<Type> types = this.typeService.findAll();
+        Type entity = new Type(1, "dog");
+        TypeDTO dto = new TypeDTO(1, "dog");
 
-        log.info("TOTAL TYPES FOUND: " + types.size());
+        when(typeRepository.findById(1)).thenReturn(Optional.of(entity));
+        when(typeMapper.mapToDto(entity)).thenReturn(dto);
 
-        assertTrue(types.size() > 0);
+        TypeDTO result = typeService.findById(1);
+
+        assertNotNull(result);
+        assertEquals("dog", result.getName());
     }
 
-    /**
-     *
-     */
+
     @Test
-    public void testCreateType() {
+    void testFindByIdNotFound() {
 
-        String TYPE_NAME = "hamster";
+        when(typeRepository.findById(99)).thenReturn(Optional.empty());
 
-        Type type = Type.builder()
-                .name(TYPE_NAME)
-                .build();
-
-        Type newType = this.typeService.create(type);
-
-        log.info("TYPE CREATED: " + newType);
-
-        assertNotNull(newType.getId());
-        assertEquals(TYPE_NAME, newType.getName());
+        assertThrows(TypeNotFoundException.class, () -> typeService.findById(99));
     }
 
-    /**
-     *
-     */
+
     @Test
-    public void testUpdateType() {
+    void testFindAll() {
 
-        String TYPE_NAME = "rabbit";
-        String UP_TYPE_NAME = "bunny";
+        Type t1 = new Type(1, "dog");
+        Type t2 = new Type(2, "cat");
 
-        Type type = Type.builder()
-                .name(TYPE_NAME)
-                .build();
+        List<Type> entities = List.of(t1, t2);
 
-        // ------------ Create ---------------
-        log.info(">" + type);
-        Type typeCreated = this.typeService.create(type);
-        log.info(">>" + typeCreated);
+        TypeDTO d1 = new TypeDTO(1, "dog");
+        TypeDTO d2 = new TypeDTO(2, "cat");
 
-        // ------------ Update ---------------
-        typeCreated.setName(UP_TYPE_NAME);
+        when(typeRepository.findAll()).thenReturn(entities);
+        when(typeMapper.mapToDtoList(entities)).thenReturn(List.of(d1, d2));
 
-        Type typeUpdated = this.typeService.update(typeCreated);
-        log.info(">>>>" + typeUpdated);
+        List<TypeDTO> result = typeService.findAll();
 
-        // VALIDACIÓN
-        assertEquals(UP_TYPE_NAME, typeUpdated.getName());
+        assertEquals(2, result.size());
     }
 
-    /**
-     *
-     */
+
     @Test
-    public void testDeleteType() {
+    void testCreate() {
 
-        String TYPE_NAME = "parrot";
+        TypeDTO input = new TypeDTO(null, "hamster");
+        Type entity = new Type(null, "hamster");
+        Type saved = new Type(10, "hamster");
+        TypeDTO output = new TypeDTO(10, "hamster");
 
-        // ------------ Create ---------------
-        Type type = Type.builder()
-                .name(TYPE_NAME)
-                .build();
+        when(typeMapper.mapToEntity(input)).thenReturn(entity);
+        when(typeRepository.save(entity)).thenReturn(saved);
+        when(typeMapper.mapToDto(saved)).thenReturn(output);
 
-        Type newType = this.typeService.create(type);
-        log.info("" + newType);
+        TypeDTO result = typeService.create(input);
 
-        // ------------ Delete ---------------
-        try {
-            this.typeService.delete(newType.getId());
-        } catch (TypeNotFoundException e) {
-            fail(e.getMessage());
-        }
-
-        // ------------ Validation ---------------
-        try {
-            this.typeService.findById(newType.getId());
-            assertTrue(false);
-        } catch (TypeNotFoundException e) {
-            assertTrue(true);
-        }
+        assertNotNull(result.getId());
+        assertEquals("hamster", result.getName());
     }
 
+
+    @Test
+    void testUpdate() {
+
+        TypeDTO input = new TypeDTO(5, "parrot");
+        Type entity = new Type(5, "parrot");
+
+        when(typeMapper.mapToEntity(input)).thenReturn(entity);
+        when(typeRepository.save(entity)).thenReturn(entity);
+        when(typeMapper.mapToDto(entity)).thenReturn(input);
+
+        TypeDTO result = typeService.update(input);
+
+        assertEquals("parrot", result.getName());
+    }
+
+
+    @Test
+    void testDelete() throws Exception {
+
+        Type entity = new Type(3, "snake");
+
+        when(typeRepository.findById(3)).thenReturn(Optional.of(entity));
+
+        typeService.delete(3);
+
+        verify(typeRepository, times(1)).delete(entity);
+    }
 }
