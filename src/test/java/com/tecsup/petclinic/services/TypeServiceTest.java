@@ -55,4 +55,64 @@ public class TypeServiceTest {
         assertEquals(TYPE_NAME, newType.getName());
     }
 
+    /**
+     *
+     */
+    @Test
+    public void testUpdateType() {
+
+        String TYPE_NAME = "rabbit";
+        String UP_TYPE_NAME = "bunny";
+
+        Type type = Type.builder()
+                .name(TYPE_NAME)
+                .build();
+
+        // ------------ Create ---------------
+        log.info(">" + type);
+        Type typeCreated = this.typeService.create(type);
+        log.info(">>" + typeCreated);
+
+        // ------------ Update ---------------
+        typeCreated.setName(UP_TYPE_NAME);
+
+        Type typeUpdated = this.typeService.update(typeCreated);
+        log.info(">>>>" + typeUpdated);
+
+        // VALIDACIÓN
+        assertEquals(UP_TYPE_NAME, typeUpdated.getName());
+    }
+
+    /**
+     *
+     */
+    @Test
+    public void testDeleteType() {
+
+        String TYPE_NAME = "parrot";
+
+        // ------------ Create ---------------
+        Type type = Type.builder()
+                .name(TYPE_NAME)
+                .build();
+
+        Type newType = this.typeService.create(type);
+        log.info("" + newType);
+
+        // ------------ Delete ---------------
+        try {
+            this.typeService.delete(newType.getId());
+        } catch (TypeNotFoundException e) {
+            fail(e.getMessage());
+        }
+
+        // ------------ Validation ---------------
+        try {
+            this.typeService.findById(newType.getId());
+            assertTrue(false);
+        } catch (TypeNotFoundException e) {
+            assertTrue(true);
+        }
+    }
+
 }
