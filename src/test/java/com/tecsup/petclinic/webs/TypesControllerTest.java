@@ -28,9 +28,7 @@ public class TypesControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    /**
-     * 1️⃣ List all types
-     */
+
     @Test
     public void testFindAllTypes() throws Exception {
 
@@ -41,9 +39,6 @@ public class TypesControllerTest {
     }
 
 
-    /**
-     * 2️⃣ Find type by ID (OK)
-     */
     @Test
     public void testFindTypeByIdOK() throws Exception {
 
@@ -54,9 +49,6 @@ public class TypesControllerTest {
     }
 
 
-    /**
-     * 3️⃣ Find type by ID (Not Found)
-     */
     @Test
     public void testFindTypeByIdKO() throws Exception {
         mockMvc.perform(get("/api/types/99999"))
@@ -64,9 +56,6 @@ public class TypesControllerTest {
     }
 
 
-    /**
-     * 4️⃣ Find type by name
-     */
     @Test
     public void testFindTypeByName() throws Exception {
 
@@ -78,9 +67,6 @@ public class TypesControllerTest {
     }
 
 
-    /**
-     * 5️⃣ Create type
-     */
     @Test
     public void testCreateType() throws Exception {
 
@@ -102,10 +88,6 @@ public class TypesControllerTest {
                 .andExpect(jsonPath("$.name", is("hamster")));
     }
 
-
-    /**
-     * 6️⃣ Update type
-     */
     @Test
     public void testUpdateType() throws Exception {
 
@@ -144,9 +126,6 @@ public class TypesControllerTest {
     }
 
 
-    /**
-     * 7️⃣ Delete type (OK)
-     */
     @Test
     public void testDeleteType() throws Exception {
 
@@ -174,9 +153,6 @@ public class TypesControllerTest {
     }
 
 
-    /**
-     * 8️⃣ Delete type (Not Found)
-     */
     @Test
     public void testDeleteTypeKO() throws Exception {
         mockMvc.perform(delete("/api/types/99999"))
