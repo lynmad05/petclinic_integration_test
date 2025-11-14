@@ -1,114 +1,185 @@
 package com.tecsup.petclinic.webs;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
+import com.tecsup.petclinic.dtos.TypeDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @Slf4j
 public class TypesControllerTest {
 
+    private static final ObjectMapper om = new ObjectMapper();
+
     @Autowired
     private MockMvc mockMvc;
 
     /**
-     * Listar todos los types
+     * 1️⃣ List all types
      */
     @Test
     public void testFindAllTypes() throws Exception {
 
         mockMvc.perform(get("/api/types"))
-                .andDo(print())
                 .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$").isArray());
     }
 
-    /**
-     * 2️⃣ Crear un nuevo type
-     */
-    @Test
-    public void testCreateType() throws Exception {
-
-        String json = """
-            {
-                "name": "hamster"
-            }
-            """;
-
-        mockMvc.perform(post("/api/types")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andDo(print())
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.name").value("hamster"));
-    }
 
     /**
-     * 3️⃣ Buscar type por ID
+     * 2️⃣ Find type by ID (OK)
      */
     @Test
-    public void testFindTypeById() throws Exception {
+    public void testFindTypeByIdOK() throws Exception {
 
-        int id = 1; // Asegúrate que exista en la BD
-
-        mockMvc.perform(get("/api/types/{id}", id))
-                .andDo(print())
+        mockMvc.perform(get("/api/types/1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.id", is(1)));
     }
 
-<<<<<<< HEAD
-=======
+
     /**
-     * 4️⃣ Buscar types por nombre
+     * 3️⃣ Find type by ID (Not Found)
+     */
+    @Test
+    public void testFindTypeByIdKO() throws Exception {
+        mockMvc.perform(get("/api/types/99999"))
+                .andExpect(status().isNotFound());
+    }
+
+
+    /**
+     * 4️⃣ Find type by name
      */
     @Test
     public void testFindTypeByName() throws Exception {
 
-        String name = "dog"; // Asegúrate que exista
+        String FIND_NAME = "dog";
 
-        mockMvc.perform(get("/api/types/name/{name}", name))
-                .andDo(print())
+        mockMvc.perform(get("/api/types/name/" + FIND_NAME))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value(name));
+                .andExpect(jsonPath("$[0].name", is(FIND_NAME)));
     }
->>>>>>> cd73a5068ed5c55d7d470ba1527bd9d7bd465748
+
 
     /**
-     * 5️⃣ Actualizar un type existente
+     * 5️⃣ Create type
+     */
+    @Test
+    public void testCreateType() throws Exception {
+
+        TypeDTO newType = TypeDTO.builder()
+                .name("hamster")
+                .description("small pet")
+                .active(true)
+                .sizeCategory("small")
+                .averageLifespan(3)
+                .careLevel("medium")
+                .build();
+
+        mockMvc.perform(post("/api/types")
+                        .content(om.writeValueAsString(newType))
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.name", is("hamster")));
+    }
+
+
+    /**
+     * 6️⃣ Update type
      */
     @Test
     public void testUpdateType() throws Exception {
 
-        int id = 1; // ID existente
-        String json = """
-            {
-                "id": 1,
-                "name": "bunny"
-            }
-            """;
+        // Crear un type para actualizarlo
+        TypeDTO dto = TypeDTO.builder()
+                .name("rabbit")
+                .active(true)
+                .sizeCategory("small")
+                .averageLifespan(5)
+                .careLevel("low")
+                .build();
 
-        mockMvc.perform(put("/api/types/{id}", id)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andDo(print())
+        ResultActions mvcActions = mockMvc.perform(post("/api/types")
+                        .content(om.writeValueAsString(dto))
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated());
+
+        String response = mvcActions.andReturn().getResponse().getContentAsString();
+        Integer id = JsonPath.parse(response).read("$.id");
+
+        // Update
+        TypeDTO updateDTO = TypeDTO.builder()
+                .id(id)
+                .name("bunny")
+                .active(true)
+                .sizeCategory("medium")
+                .averageLifespan(6)
+                .careLevel("medium")
+                .build();
+
+        mockMvc.perform(put("/api/types/" + id)
+                        .content(om.writeValueAsString(updateDTO))
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("bunny"));
+                .andExpect(jsonPath("$.name", is("bunny")));
     }
 
-<<<<<<< HEAD
-=======
 
->>>>>>> cd73a5068ed5c55d7d470ba1527bd9d7bd465748
+    /**
+     * 7️⃣ Delete type (OK)
+     */
+    @Test
+    public void testDeleteType() throws Exception {
+
+        // Crear uno primero
+        TypeDTO dto = TypeDTO.builder()
+                .name("toDelete")
+                .active(true)
+                .build();
+
+        ResultActions action = mockMvc.perform(post("/api/types")
+                        .content(om.writeValueAsString(dto))
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated());
+
+        String response = action.andReturn().getResponse().getContentAsString();
+        Integer id = JsonPath.parse(response).read("$.id");
+
+        // Eliminar
+        mockMvc.perform(delete("/api/types/" + id))
+                .andExpect(status().isOk());
+
+        // Validar not found
+        mockMvc.perform(get("/api/types/" + id))
+                .andExpect(status().isNotFound());
+    }
+
+
+    /**
+     * 8️⃣ Delete type (Not Found)
+     */
+    @Test
+    public void testDeleteTypeKO() throws Exception {
+        mockMvc.perform(delete("/api/types/99999"))
+                .andExpect(status().isNotFound());
+    }
 }
