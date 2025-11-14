@@ -68,6 +68,22 @@ public class TypesControllerTest {
                 .andExpect(jsonPath("$.id").value(id));
     }
 
+<<<<<<< HEAD
+=======
+    /**
+     * 4️⃣ Buscar types por nombre
+     */
+    @Test
+    public void testFindTypeByName() throws Exception {
+
+        String name = "dog"; // Asegúrate que exista
+
+        mockMvc.perform(get("/api/types/name/{name}", name))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value(name));
+    }
+>>>>>>> cd73a5068ed5c55d7d470ba1527bd9d7bd465748
 
     /**
      * 5️⃣ Actualizar un type existente
@@ -91,4 +107,8 @@ public class TypesControllerTest {
                 .andExpect(jsonPath("$.name").value("bunny"));
     }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> cd73a5068ed5c55d7d470ba1527bd9d7bd465748
 }
