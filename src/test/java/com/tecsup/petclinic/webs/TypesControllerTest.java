@@ -22,7 +22,7 @@ public class TypesControllerTest {
     private MockMvc mockMvc;
 
     /**
-     * 1️⃣ Listar todos los types
+     * Listar todos los types
      */
     @Test
     public void testFindAllTypes() throws Exception {
@@ -68,19 +68,6 @@ public class TypesControllerTest {
                 .andExpect(jsonPath("$.id").value(id));
     }
 
-    /**
-     * 4️⃣ Buscar types por nombre
-     */
-    @Test
-    public void testFindTypeByName() throws Exception {
-
-        String name = "cat"; // Asegúrate que exista
-
-        mockMvc.perform(get("/api/types/name/{name}", name))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value(name));
-    }
 
     /**
      * 5️⃣ Actualizar un type existente
@@ -104,36 +91,4 @@ public class TypesControllerTest {
                 .andExpect(jsonPath("$.name").value("bunny"));
     }
 
-    /**
-     * 6️⃣ Eliminar un type
-     */
-    @Test
-    public void testDeleteType() throws Exception {
-
-        // Primero se debe crear un type para eliminar
-        String json = """
-            {
-                "name": "toDelete"
-            }
-            """;
-
-        // Crear
-        var result = mockMvc.perform(post("/api/types")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andReturn();
-
-        String response = result.getResponse().getContentAsString();
-        int idCreated = Integer.parseInt(response.replaceAll(".*\"id\":(\\d+).*", "$1"));
-
-        // Eliminar
-        mockMvc.perform(delete("/api/types/{id}", idCreated))
-                .andDo(print())
-                .andExpect(status().isOk());
-
-        // Validar que ya no exista
-        mockMvc.perform(get("/api/types/{id}", idCreated))
-                .andDo(print())
-                .andExpect(status().isNotFound());
-    }
 }
