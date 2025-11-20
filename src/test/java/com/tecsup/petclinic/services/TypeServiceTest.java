@@ -35,7 +35,7 @@ public class TypeServiceTest {
     }
 
     // -----------------------
-    // FIND BY ID OK
+    // Busqueda por ID
     // -----------------------
     @Test
     void testFindById() throws Exception {
