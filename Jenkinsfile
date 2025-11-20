@@ -37,5 +37,11 @@ pipeline {
                 sh 'mvn package -DskipTests'
             }
         }
+        //Nuevo stage profesor
+        stage('Extra') {
+             steps {
+                 echo 'Nuevo stage agregado (sin acciones por ahora)'
+             }
+        }
     }
 }
